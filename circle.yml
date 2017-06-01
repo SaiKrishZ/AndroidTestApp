@@ -15,8 +15,6 @@ machine:
     QEMU_AUDIO_DRV: none
 
 dependencies:
-    cache_directories:
-        - ~/.android
     override:
         - echo y | android update sdk --no-ui --all --filter tools
         - echo y | android update sdk --no-ui --all --filter platform-tools
@@ -28,13 +26,13 @@ dependencies:
 
 test:
     override:
-        - rm -R .gradle
+        - sudo ./gradlew clean
         - echo $ANDROID_HOME
-        - sudo ./gradlew :app:assembleDebug
-        - sudo ./gradlew :app:assembleDebugAndroidTest
+        - sudo ./gradlew assembleDebug
+        - sudo ./gradlew assembleDebugAndroidTest
         - emulator -avd circleci-android24 -no-window:
             background:true
-            parallel:false
+            parallel:true
         - circle-android wait-for-boot
         - adb shell input keyevent 82
         - bash ./apk_install_script
