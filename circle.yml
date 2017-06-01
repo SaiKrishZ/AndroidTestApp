@@ -16,7 +16,6 @@ machine:
 
 dependencies:
     cache_directories:
-        - ~/.gradle
         - ~/.android
     override:
         - echo y | android update sdk --no-ui --all --filter tools
@@ -29,6 +28,7 @@ dependencies:
 
 test:
     override:
+        - rm -R .gradle
         - echo $ANDROID_HOME
         - sudo ./gradlew :app:assembleDebug
         - sudo ./gradlew :app:assembleDebugAndroidTest
