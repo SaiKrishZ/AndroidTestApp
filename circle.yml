@@ -23,6 +23,7 @@ dependencies:
         - chmod +x gradlew
         - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
     post:
+        - echo $ANDROID_HOME
         - sudo ./gradlew :app:assembleDebug
         - sudo ./gradlew :app:assembleDebugAndroidTest
 
