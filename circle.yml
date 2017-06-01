@@ -15,12 +15,13 @@ machine:
     QEMU_AUDIO_DRV: none
 
 dependencies:
-    pre:
-        - sudo apt-get update; sudo apt-get install jq
+    cache_directories:
+        - ~/.gradle
+        - ~/.android
     override:
         - echo y | android update sdk --no-ui --all --filter tools,platform-tools,build-tools-25.0.2,android-25,extra-google-m2repository,extra-google-google_play_services,extra-android-support
         - chmod +x gradlew
-        - sudo ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
+        - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
     post:
         - sudo ./gradlew :app:assembleDebug
         - sudo ./gradlew :app:assembleDebugAndroidTest
