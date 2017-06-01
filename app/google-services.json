@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "454769771368",
+    "firebase_url": "https://testcirclebuildproject.firebaseio.com",
+    "project_id": "testcirclebuildproject",
+    "storage_bucket": "testcirclebuildproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454769771368:android:ef80e135ae118dc7",
+        "android_client_info": {
+          "package_name": "com.android.androidtestbuild"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "454769771368-062vvr4jgrb4jllaftk8atcbok4ua5lc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDF-op6AmIy5ADvLkGzZi3Pisnflojk-6c"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

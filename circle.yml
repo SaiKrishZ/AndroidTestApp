@@ -12,9 +12,10 @@ machine:
         ANDROID_HOME: /usr/local/android-sdk-linux
     java:
         version: oraclejdk8
-    QEMU_AUDIO_DRV: none
 
 dependencies:
+    pre:
+        - sudo pip install -U crcmod
     override:
         - echo y | android update sdk --no-ui --all --filter tools
         - echo y | android update sdk --no-ui --all --filter platform-tools
@@ -23,17 +24,20 @@ dependencies:
         - echo y | android update sdk --no-ui --all --filter extra-google-m2repository
         - echo y | android update sdk --no-ui --all --filter extra-google-google_play_services
         - echo y | android update sdk --no-ui --all --filter extra-android-support
-
-test:
-    override:
+    post:
         - sudo ./gradlew clean
         - echo $ANDROID_HOME
         - sudo ./gradlew assembleDebug
         - sudo ./gradlew assembleDebugAndroidTest
-        - emulator -avd circleci-android24 -no-window:
-            background:true
-            parallel:true
-        - circle-android wait-for-boot
-        - adb shell input keyevent 82
-        - bash ./apk_install_script
-        - adb shell am instrument -w -r   -e debug false -e class com.android.androidtestbuild.ExampleInstrumentedTest com.android.androidtestbuild.test/android.support.test.runner.AndroidJUnitRunner
+        - echo $GCLOUD_SERVICE_KEY | base64 --decode > ${HOME}/client-secret.json
+        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
+        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components install beta
+        - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account testzopnowproject@appspot.gserviceaccount.com --key-file ${HOME}/client-secret.json
+        - sudo /opt/google-cloud-sdk/bin/gcloud auth list
+        - sudo /opt/google-cloud-sdk/bin/gcloud config set project testzopnowproject
+
+test:
+    override:
+        - echo "y" | /opt/google-cloud-sdk/bin/gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/app-debug.apk --test app/build/outputs/apk/app-debug-androidTest.apk device model=Nexus4,version=21,locale=en,orientation=portrait
+    post:
+        - sudo /opt/google-cloud-sdk/bin/gsutil -m cp -r -U `sudo /opt/google-cloud-sdk/bin/gsutil ls gs://cloud-test-circle-ctl-test | tail -1` $CIRCLE_ARTIFACTS/ | true
