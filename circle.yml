@@ -1,0 +1,38 @@
+#
+# Build configuration for Circle CI
+#
+
+general:
+    branches:
+        only:
+            - master
+
+machine:
+    environment:
+        ANDROID_HOME: /usr/local/android-sdk-linux'
+    java:
+        version: oraclejdk8
+    QEMU_AUDIO_DRV: none
+
+dependencies:
+    pre:
+        - sudo apt-get update; sudo apt-get install jq
+    override:
+        - echo y | android update sdk --no-ui --all --filter tools,platform-tools,build-tools-25.0.2,android-25,extra-google-m2repository,extra-google-google_play_services,extra-android-support
+        - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
+
+test:
+    override:
+        - emulator -avd circleci-android24 -no-window:
+            background:true
+            parallel:false
+        - circle-android wait-for-boot
+        - ./gradlew :app:assembleDebug:
+            timeout: 1200
+        - ./gradlew :app:assembleDebugAndroidTest:
+            timeout: 1200
+        - adb shell input keyevent 82
+        - bash ./apk_install_script:
+            timeout: 180
+        - adb shell am instrument -w -r   -e debug false -e class com.android.androidtestbuild.ExampleInstrumentedTest com.android.androidtestbuild.test/android.support.test.runner.AndroidJUnitRunner
+            timeout: 180
