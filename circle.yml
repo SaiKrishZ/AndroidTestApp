@@ -23,27 +23,10 @@ dependencies:
         - echo y | android update sdk --no-ui --all --filter extra-google-google_play_services
         - echo y | android update sdk --no-ui --all --filter extra-android-support
         - echo y | android update sdk --no-ui --all --filter "sys-img-armeabi-v7a-google_apis-24"
-        - echo no | android create avd -n circleci-android24-googleapis -t 'android-24' --abi google_apis/armeabi-v7a
-        - wget "https://dl-ssl.google.com/android/repository/sys-img/google_apis/armeabi-v7a-24_r08.zip"
-        - unzip armeabi-v7a-24_r08.zip
-        # overwrite some of the new files with older files
-        - mv armeabi-v7a/* /usr/local/android-sdk-linux/system-images/android-24/google_apis/armeabi-v7a
-        - rm armeabi-v7a-24_r08.zip
         - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
-    cache_directories:
-        - ~/.gradle
-        - /usr/local/android-sdk-linux/tools
-        - /usr/local/android-sdk-linux/platforms/android-24
-        - /usr/local/android-sdk-linux/build-tools/25.0.2
-        - /usr/local/android-sdk-linux/extras/android/m2repository
 
 test:
     override:
-        - emulator -avd circleci-android24-googleapis -gpu off:
-            background: true
-            parallel: true
-        - circle-android wait-for-boot
-        - sleep 30
-        - adb shell input keyevent 82
-        - sudo ./gradlew connectedAndroidTest
+        - sudo ./gradlew assembleDebug
+        - sudo ./gradlew assembleDebugAndroidTest
         - cp -r app/build/outputs $CIRCLE_ARTIFACTS
