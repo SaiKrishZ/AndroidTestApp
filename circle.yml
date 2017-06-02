@@ -23,10 +23,10 @@ dependencies:
         - echo y | android update sdk --no-ui --all --filter extra-google-google_play_services
         - echo y | android update sdk --no-ui --all --filter extra-android-support
         - echo y | android update sdk --no-ui --all --filter "sys-img-armeabi-v7a-google_apis-24"
-        - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
+        - sudo ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
+        - sudo ./gradlew assembleDebug
+        - sudo ./gradlew assembleDebugAndroidTest
 
 test:
     override:
-        - sudo ./gradlew assembleDebug
-        - sudo ./gradlew assembleDebugAndroidTest
         - cp -r app/build/outputs $CIRCLE_ARTIFACTS
