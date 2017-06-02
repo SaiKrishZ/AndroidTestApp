@@ -14,8 +14,6 @@ machine:
         version: oraclejdk8
 
 dependencies:
-    pre:
-        - sudo pip install -U crcmod
     override:
         - echo y | android update sdk --no-ui --all --filter tools
         - echo y | android update sdk --no-ui --all --filter platform-tools
@@ -24,20 +22,29 @@ dependencies:
         - echo y | android update sdk --no-ui --all --filter extra-google-m2repository
         - echo y | android update sdk --no-ui --all --filter extra-google-google_play_services
         - echo y | android update sdk --no-ui --all --filter extra-android-support
-    post:
-        - sudo ./gradlew clean
-        - echo $ANDROID_HOME
-        - sudo ./gradlew assembleDebug
-        - sudo ./gradlew assembleDebugAndroidTest
-        - echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/client-secret.json
-        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
-        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components install beta
-        - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account testzopnowproject@appspot.gserviceaccount.com --key-file ${HOME}/client-secret.json
-        - sudo /opt/google-cloud-sdk/bin/gcloud auth list
-        - sudo /opt/google-cloud-sdk/bin/gcloud config set project testzopnowproject
+        - echo y | android update sdk --no-ui --all --filter "sys-img-armeabi-v7a-google_apis-24"
+        - echo no | android create avd -n circleci-android24-googleapis -t 'android-24' --abi google_apis/armeabi-v7a
+        - wget "https://dl-ssl.google.com/android/repository/sys-img/google_apis/armeabi-v7a-24_r08.zip"
+        - unzip armeabi-v7a-24_r08.zip
+        # overwrite some of the new files with older files
+        - mv armeabi-v7a/* /usr/local/android-sdk-linux/system-images/android-24/google_apis/armeabi-v7a
+        - rm armeabi-v7a-24_r08.zip
+        - ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
+    cache_directories:
+        - ~/.gradle
+        - /usr/local/android-sdk-linux/tools
+        - /usr/local/android-sdk-linux/platforms/android-24
+        - /usr/local/android-sdk-linux/build-tools/25.0.2
+        - /usr/local/android-sdk-linux/extras/android/m2repository
 
 test:
     override:
-        - echo "y" | sudo /opt/google-cloud-sdk/bin/gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/app-debug-unaligned.apk --test app/build/outputs/apk/app-debug-androidTest-unaligned.apk --device model=D6503,version=21,locale=en,orientation=portrait
-    post:
-        - sudo /opt/google-cloud-sdk/bin/gsutil -m cp -r -U `sudo /opt/google-cloud-sdk/bin/gsutil ls gs://cloud-test-circle-ctl-test | tail -1` $CIRCLE_ARTIFACTS/ | true
+        - emulator -avd circleci-android24-googleapis -no-window -gpu off:
+            background: true
+            parallel: true
+        - circle-android wait-for-boot
+        - sleep 30
+        - adb shell input keyevent 82
+        - ./gradlew connectedAndroidTest
+        - cp -r app/build/outputs $CIRCLE_ARTIFACTS
+        - cp -r app/build/reports/jacoco/* $CIRCLE_TEST_REPORTS
