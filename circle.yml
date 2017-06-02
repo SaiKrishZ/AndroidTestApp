@@ -38,6 +38,6 @@ dependencies:
 
 test:
     override:
-        - echo "y" | /opt/google-cloud-sdk/bin/gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/app-debug.apk --test app/build/outputs/apk/app-debug-androidTest.apk device model=Nexus4,version=21,locale=en,orientation=portrait
+        - echo "y" | /opt/google-cloud-sdk/bin/gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/app-debug.apk --test app/build/outputs/apk/app-debug-androidTest.apk --device model=D6503,version=21,locale=en,orientation=portrait
     post:
         - sudo /opt/google-cloud-sdk/bin/gsutil -m cp -r -U `sudo /opt/google-cloud-sdk/bin/gsutil ls gs://cloud-test-circle-ctl-test | tail -1` $CIRCLE_ARTIFACTS/ | true
