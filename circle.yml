@@ -45,6 +45,9 @@ test:
         - circle-android wait-for-boot
         - sleep 30
         - adb shell input keyevent 82
-        - ./gradlew connectedAndroidTest
+        - sudo ./gradlew assembleDebug
+        - sudo ./gradlew assembleDebugAndroidTest
+        - bash ./apk_install_script
+        - adb shell am instrument -w -r   -e debug false -e class com.android.androidtestbuild.ExampleInstrumentedTest com.android.androidtestbuild.test/android.support.test.runner.AndroidJUnitRunner
         - cp -r app/build/outputs $CIRCLE_ARTIFACTS
-        - cp -r app/build/reports/jacoco/* $CIRCLE_TEST_REPORTS
+        - cp -r app/build/reports/* $CIRCLE_TEST_REPORTS
