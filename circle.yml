@@ -14,6 +14,8 @@ machine:
         version: oraclejdk8
 
 dependencies:
+    pre:
+        - sudo pip install -U crcmod
     override:
         - echo y | android update sdk --no-ui --all --filter tools
         - echo y | android update sdk --no-ui --all --filter platform-tools
@@ -22,11 +24,20 @@ dependencies:
         - echo y | android update sdk --no-ui --all --filter extra-google-m2repository
         - echo y | android update sdk --no-ui --all --filter extra-google-google_play_services
         - echo y | android update sdk --no-ui --all --filter extra-android-support
-        - echo y | android update sdk --no-ui --all --filter "sys-img-armeabi-v7a-google_apis-24"
-        - sudo ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew dependencies
-        - sudo ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew assembleDebug
-        - sudo ANDROID_HOME=/usr/local/android-sdk-linux ./gradlew assembleDebugAndroidTest
+    post:
+        - sudo ./gradlew clean
+        - echo $ANDROID_HOME
+        - sudo ./gradlew assembleDebug
+        - sudo ./gradlew assembleDebugAndroidTest
+        - echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/client-secret.json
+        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
+        - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components install beta
+        - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account testzopnowproject@appspot.gserviceaccount.com --key-file ${HOME}/client-secret.json
+        - sudo /opt/google-cloud-sdk/bin/gcloud auth list
+        - sudo /opt/google-cloud-sdk/bin/gcloud config set project testzopnowproject
 
 test:
     override:
-        - cp -r app/build/outputs $CIRCLE_ARTIFACTS
+        - echo "y" | sudo /opt/google-cloud-sdk/bin/gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/app-debug-unaligned.apk --test app/build/outputs/apk/app-debug-androidTest-unaligned.apk --device model=D6503,version=21,locale=en,orientation=portrait
+    post:
+        - sudo /opt/google-cloud-sdk/bin/gsutil -m cp -r -U `sudo /opt/google-cloud-sdk/bin/gsutil ls gs://cloud-test-circle-ctl-test | tail -1` $CIRCLE_ARTIFACTS/ | true
